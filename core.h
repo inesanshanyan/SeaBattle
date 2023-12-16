@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <vector>
+#include "view.h"
 
 class CORE {
 public:
@@ -18,14 +19,15 @@ public:
     void menu();
     void game();
     void winner(const bool& player);
-
+    
 private:
     std::vector<std::vector<int>> shipData;// = { 4, 3, 3, 2, 2, 2, 1, 1, 1, 1 }; // setting ship size
     std::vector<std::vector<int>> Board1;
     std::vector<std::vector<int>> Board2;
     int sizeRow, directionRow, xRow, yRow;
     int SIZE = 10;
-    //std::string player1, player2;
+    VIEW view;
+   
 };
 
 #endif
