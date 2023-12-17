@@ -38,38 +38,46 @@ void CORE::printMatrix(const std::vector<std::vector<int>>& matrix) {
 }
 
 void CORE::shipDirections() {
-    for (int i = 0; i < shipData[0].size(); ++i) {
+    /*for (int i = 0; i < shipData[0].size(); ++i) {
         //std::cout << "ship data " << shipData[0].size() << std::endl;
         view.getShipDirections(shipData);
         setShips(shipData, Board1);
         //std::cout << "checking\n";
-    }
+    }*/
     //for (double i = 0; i <= 1e+8; ++i);
     //view.getShipDirections(shipData);
     //setShips(shipData, Board2);
 }
 
-void CORE::setShips(std::vector<std::vector<int>>& shipData, std::vector<std::vector<int>>& Board) {
+void CORE::setShips(std::vector<std::vector<int>>& Board, int boardNumber) {
     for (int index = 0; index < shipData[directionRow].size(); ++index) {
-        int x = shipData[xRow][index];
-        int y = shipData[yRow][index];
+        view.getShipDirections(shipData, index);
+        int x = shipData[xRow][index] - 1;
+        int y = shipData[yRow][index] - 1;
         //std::cout << "checking for Board2\n";
         switch (shipData[directionRow][index]) {
-            case 0:
-                break;
-            case 1: // horizontal case              
+            case 0: // horizontal case              
                 for (int size = 0; size < shipData[sizeRow][index]; ++size) {
                     Board[x][y + size] = 1;
                     //std::cout << "Board2 x y size : " << x << " " << y << " " << shipData[sizeRow][index] << std::endl;
                 }
                 break;
-            case 2: // vertical case
+            case 1: // vertical case
                 for (int size = 0; size < shipData[sizeRow][index]; ++size) {
                     Board[x + size][y] = 1;
                     //std::cout << "checking for Board 2 in switch case 0\n";
                 }
                 break;
         }
+        switch (boardNumber) {
+        case 1:
+            view.setGrid(view.getGrid(boardNumber), Board);
+            break;
+        case 2:
+            view.setGrid(view.getGrid(boardNumber), Board);
+            break;
+        }
+        
     }
 }
 
@@ -146,7 +154,8 @@ void CORE::game() {
     menu();
     view.drawBoard(Board1, Board2);
     view.drawControlBoard();
-    shipDirections();
+
+    setShips(Board1, 1);
     shootShips();
 }
 

@@ -158,17 +158,38 @@ void VIEW::printMatrix(const std::vector<std::vector<int>>& matrix) {
     std::cout << "\n\n";
 }
 
-void VIEW::getShipDirections(std::vector<std::vector<int>>& shipData) {
-    std::srand(static_cast<unsigned int>(std::time(nullptr)));   
-    for (int i = 0; i < 10; ++i) {
-        mvwprintw(Control, 2, 2, "Enter H or V, x, y");
+void VIEW::getShipDirections(std::vector<std::vector<int>>& shipData, int index) {
+    std::srand(static_cast<unsigned int>(std::time(nullptr)));
+    mvwprintw(Control, 2, 2, "Size : %d ", shipData[0][index]);
+    mvwprintw(Control, 4, 2, "Enter x y : ");
+    wmove(Control, 6, 2);
+    mvwscanw(Control, 6, 2, "%d %d", &shipData[2][index], &shipData[3][index]);
+    //wmove(Control, 6, 2);
+    //mvwscanw(Control, 4, 4, "%d", &shipData[3][index]);
+    mvwprintw(Control, 8, 2, "Enter directon(1 or 0) : ");
+    wmove(Control, 10, 2);
+    mvwscanw(Control, 10, 2, "%d", &shipData[3][index]);
+    werase(Control);
 
-        //shipData[1].push_back(std::rand() % 2);
-        shipData[1][i] = std::rand() % 2;
-        shipData[2][i] = std::rand() % 6;
-        shipData[3][i] = std::rand() % 5;
-    }
+    //getch();
+    //shipData[1].push_back(std::rand() % 2);
+    //shipData[1][i] = std::rand() % 2;
+    //shipData[2][i] = std::rand() % 6;
+    //shipData[3][i] = std::rand() % 5;
     //printMatrix(shipData);
+}
+
+WINDOW* VIEW::getGrid(int gridNumber) {
+
+    switch (gridNumber) {
+    case 1:
+        return Grid1;
+    case 2:
+        return Grid2;
+    default:
+        return nullptr;
+    }
+
 }
 
 void VIEW::getShootCoord(int& shootX, int& shootY) {

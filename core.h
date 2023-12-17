@@ -11,7 +11,7 @@ public:
     void initValues();
     void printMatrix(const std::vector<std::vector<int>>& matrix);
     void shipDirections(); 
-    void setShips(std::vector<std::vector<int>>& shipData, std::vector<std::vector<int>>& Board);
+    void setShips(std::vector<std::vector<int>>& Board, int boardNumber);
     void shootShips();
     void shoot(std::vector<std::vector<int>>& Board, const int& shootX, const int& shootY, bool& player);
     bool check(std::vector<std::vector<int>>& Board, const int& shootX, const int& shootY);

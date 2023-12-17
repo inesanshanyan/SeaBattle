@@ -11,7 +11,7 @@ public:
     void printMatrix(const std::vector<std::vector<int>>& matrix);
     void print(std::string text);
     void getShootCoord(int& shootX, int& shootY);
-    void getShipDirections(std::vector<std::vector<int>>& shipData);
+    void getShipDirections(std::vector<std::vector<int>>& shipData, int index);
     void menu();
     void drawBoard(const std::vector<std::vector<int>>& Board1, const std::vector<std::vector<int>>& Board2);
     
@@ -20,6 +20,7 @@ public:
     void setCoord(WINDOW* Grid);
     void drawControlBoard();
     void coverBoard(WINDOW* Grid);
+    WINDOW* getGrid(int gridNumber);
 
     ~VIEW();
 private:
@@ -28,7 +29,7 @@ private:
     const int SIZE = 10;
     int height = 23, width = 44;
     int disFromCorners = 6;
-    int controlHeight = 8, controlWidth = 20;
+    int controlHeight = 15, controlWidth = 30;
     WINDOW* Grid1;
     WINDOW* Grid2;
     WINDOW* Control;
