@@ -81,27 +81,25 @@ void CORE::setShips(std::vector<std::vector<int>>& Board, int boardNumber) {
     }
 }
 
-void CORE::shootShips() {
+void CORE::shootingShips() {
     int shootX, shootY;
     std::vector<std::vector<int>> shootingBoard;
     bool continue_ = 1;
     bool player = 0; // 0 - player1, 1 - player2
     while (continue_) {
         while (player == 0 && continue_ != 0) { // 0 - player1
-            //std::cout << "player 1 Board 2 ";
+            view.print(view.getPlayerName(1));
             view.getShootCoord(shootX, shootY);
-            //std::cout << "x y player 1:" << shootX << " " << shootY << std::endl;
             shoot(Board2, shootX, shootY, player);
-            //printMatrix(Board2);
+            view.coverGrid(view.getGrid(2), Board2);
             isFinished(continue_, Board2);
         }
         
         while (player == 1 && continue_ != 0) { // 1 - player2
-            //std::cout << "player 2 Board 1 ";
+            view.print(view.getPlayerName(2));
             view.getShootCoord(shootX, shootY);
-            //std::cout << "x y player 2:" << shootX << " " << shootY << std::endl;
             shoot(Board1, shootX, shootY, player);
-            //printMatrix(Board1);
+            view.coverGrid(view.getGrid(2), Board2);
             isFinished(continue_, Board1);
         }
     }
@@ -113,14 +111,12 @@ void CORE::shoot(std::vector<std::vector<int>>& Board, const int& shootX, const 
     //std::cout << "checking in shoot\n";
 	if (Board[shootX][shootY] == 1) {
         Board[shootX][shootY] = 2;
-        /*if (check(Board, shootX, shootY)) {
-            view.print(text);
-        }*/
         return;
     }
     else if (Board[shootX][shootY] == 0) {
         Board[shootX][shootY] = 3;
     }
+    
     player = !player;
 }
 
@@ -155,8 +151,15 @@ void CORE::game() {
     view.drawBoard(Board1, Board2);
     view.drawControlBoard();
 
+    view.print(view.getPlayerName(1));
     setShips(Board1, 1);
-    shootShips();
+    view.print(view.getPlayerName(2));
+    setShips(Board2, 2);
+
+    view.coverGrid(view.getGrid(1), Board1);
+    view.coverGrid(view.getGrid(2), Board2);
+
+    shootingShips();
 }
 
 void CORE::menu() {

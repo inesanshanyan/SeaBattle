@@ -13,14 +13,19 @@ VIEW::VIEW() {
     
     Grid1 = newwin(height, width, 4, disFromCorners);
     Grid2 = newwin(height, width, 4, max_width - disFromCorners - width);
-    Control = newwin(controlHeight, controlWidth, 8, 60); //aranc gushakelu hashvel 60y
-
+    Control = newwin(controlHeight, controlWidth, 8, (max_width - controlWidth)/2);
     start_color(); 
     init_pair(1, COLOR_BLACK, COLOR_WHITE);
 }
 
 void VIEW::print(std::string text) {
-	std::cout << text << "\n";
+    init_pair(7, COLOR_BLUE, COLOR_BLACK);
+    wattron(stdscr, COLOR_PAIR(7));
+    int height, width;
+    getmaxyx(stdscr, height, width);
+    mvwprintw(stdscr, 2, (width - text.size())/2, "%s", text.c_str());
+    wattron(stdscr, COLOR_PAIR(7));
+    wrefresh(stdscr);
 }
 
 void VIEW::menu() {
@@ -121,7 +126,6 @@ void VIEW::setGrid(WINDOW* Grid, const std::vector<std::vector<int>>& Board) {
             case 1:
                 wattron(Grid, COLOR_PAIR(2));
                 charToPrint = 'O';
-                wattron(Grid, COLOR_PAIR(3));
                 break;
             case 2:
                 wattron(Grid, COLOR_PAIR(5));
@@ -139,10 +143,30 @@ void VIEW::setGrid(WINDOW* Grid, const std::vector<std::vector<int>>& Board) {
     }
 }
 
-void VIEW::coverBoard(WINDOW* Grid) {
+void VIEW::coverGrid(WINDOW* Grid, const std::vector<std::vector<int>>& Board) {
+    char charToPrint;
+    init_pair(3, COLOR_BLACK, COLOR_WHITE);
+    init_pair(4, COLOR_BLUE, COLOR_WHITE);
+    init_pair(5, COLOR_RED, COLOR_WHITE);
     for (int row = 0; row < SIZE; ++row) {
         for (int column = 0; column < SIZE; ++column) {
-            mvwprintw(Grid, row * 2 + 3, column * 4 + 5, "X");
+            switch (Board[row][column]) {
+            case 0:
+                wattron(Grid, COLOR_PAIR(3));
+                break;
+            case 1:
+                wattron(Grid, COLOR_PAIR(3));
+                break;
+            case 2:
+                wattron(Grid, COLOR_PAIR(5));
+                break;
+            case 3:
+                wattron(Grid, COLOR_PAIR(4));
+                break;
+            }
+            charToPrint = 'X';
+            mvwprintw(Grid, row * 2 + 3, column * 4 + 5, "%c", charToPrint);
+            wattroff(Grid, A_ATTRIBUTES);
             wrefresh(Grid);
         }
     }
@@ -159,25 +183,31 @@ void VIEW::printMatrix(const std::vector<std::vector<int>>& matrix) {
 }
 
 void VIEW::getShipDirections(std::vector<std::vector<int>>& shipData, int index) {
-    std::srand(static_cast<unsigned int>(std::time(nullptr)));
+    //std::srand(static_cast<unsigned int>(std::time(nullptr)));
+
+    box(Control, 0, 0);
     mvwprintw(Control, 2, 2, "Size : %d ", shipData[0][index]);
     mvwprintw(Control, 4, 2, "Enter x y : ");
+    mvwprintw(Control, 8, 2, "Enter direction(h or v) : ");
+
     wmove(Control, 6, 2);
     mvwscanw(Control, 6, 2, "%d %d", &shipData[2][index], &shipData[3][index]);
-    //wmove(Control, 6, 2);
-    //mvwscanw(Control, 4, 4, "%d", &shipData[3][index]);
-    mvwprintw(Control, 8, 2, "Enter directon(1 or 0) : ");
-    wmove(Control, 10, 2);
-    mvwscanw(Control, 10, 2, "%d", &shipData[3][index]);
-    werase(Control);
 
-    //getch();
-    //shipData[1].push_back(std::rand() % 2);
-    //shipData[1][i] = std::rand() % 2;
-    //shipData[2][i] = std::rand() % 6;
-    //shipData[3][i] = std::rand() % 5;
-    //printMatrix(shipData);
+    wmove(Control, 10, 2);
+    char dir;
+    mvwscanw(Control, 10, 2, "%c", &dir);
+    switch (tolower(dir)) {
+    case 'h':
+        shipData[1][index] = 0;
+        break;
+    case 'v':
+        shipData[1][index] = 1;
+        break;
+    }
+
+    werase(Control);
 }
+
 
 WINDOW* VIEW::getGrid(int gridNumber) {
 
@@ -186,10 +216,24 @@ WINDOW* VIEW::getGrid(int gridNumber) {
         return Grid1;
     case 2:
         return Grid2;
+    case 3:
+        return Control;
     default:
         return nullptr;
     }
 
+}
+
+std::string VIEW::getPlayerName(int playerNum) {
+    std::string error_ = "Error in getPlayerName";
+    switch (playerNum) {
+    case 1:
+        return player1;
+    case 2:
+        return player2;
+    default:
+        return error_;
+    }
 }
 
 void VIEW::getShootCoord(int& shootX, int& shootY) {
