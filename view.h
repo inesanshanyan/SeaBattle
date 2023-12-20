@@ -11,7 +11,7 @@ public:
     void printMatrix(const std::vector<std::vector<int>>& matrix);
     void print(std::string text);
     void getShootCoord(int& shootX, int& shootY);
-    void getShipDirections(std::vector<std::vector<int>>& shipData, int index);
+    void getShipDirections(int &validX, int &validY, int &validDir, int size);
     void menu();
     void drawBoard(const std::vector<std::vector<int>>& Board1, const std::vector<std::vector<int>>& Board2);
     std::string getPlayerName(int playerNum);
@@ -24,7 +24,7 @@ public:
 
     ~VIEW();
 private:
-    std::string player1 = "player 1", player2 = "player 2";
+    std::string player1, player2;
     int max_height, max_width;
     const int SIZE = 10;
     int height = 23, width = 44;

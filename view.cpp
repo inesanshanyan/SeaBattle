@@ -10,6 +10,7 @@ VIEW::VIEW() {
     cbreak();
     refresh();
     getmaxyx(stdscr, max_height, max_width);
+    //max_width
     
     Grid1 = newwin(height, width, 4, disFromCorners);
     Grid2 = newwin(height, width, 4, max_width - disFromCorners - width);
@@ -19,19 +20,25 @@ VIEW::VIEW() {
 }
 
 void VIEW::print(std::string text) {
-    init_pair(7, COLOR_BLUE, COLOR_BLACK);
-    wattron(stdscr, COLOR_PAIR(7));
-    int height, width;
-    getmaxyx(stdscr, height, width);
-    mvwprintw(stdscr, 2, (width - text.size())/2, "%s", text.c_str());
-    wattron(stdscr, COLOR_PAIR(7));
-    wrefresh(stdscr);
+    int printHeight = 3, printWidth = 30;
+    init_pair(7, COLOR_RED, COLOR_WHITE);
+
+    WINDOW* printWindow = newwin(printHeight, printWidth, 3, (max_width - printWidth) / 2);
+    werase(printWindow);
+    box(printWindow, 0, 0);
+    wbkgd(printWindow, COLOR_PAIR(1));
+    
+    
+    wattron(printWindow, COLOR_PAIR(7));
+    mvwprintw(printWindow, 1, (printWidth - text.size())/2, "%s", text.c_str());
+    wattroff(printWindow, COLOR_PAIR(7));
+
+    wrefresh(printWindow);
 }
 
 void VIEW::menu() {
-    
-    // screen size x = 35, y = 117
-    
+    werase(stdscr);
+    // screen size x = 40, y = 150 
     char buffer[50];
     int menuHeight = 12, menuWidth = 46;
     WINDOW* menu = newwin(menuHeight, menuWidth, (max_height - menuHeight) / 2, (max_width - menuWidth) / 2);
@@ -61,14 +68,14 @@ void VIEW::drawBoard(const std::vector<std::vector<int>>& Board1, const std::vec
     init_pair(6, COLOR_WHITE, COLOR_BLACK);
     wattron(stdscr, COLOR_PAIR(6));
 
-    mvwprintw(stdscr, 1, disFromCorners + width / 2, "%s", player1.c_str());
+    mvwprintw(stdscr, 1, disFromCorners + (width - player1.size())/2, "%s", player1.c_str());
     box(Grid1, 0, 0);
     wbkgd(Grid1, COLOR_PAIR(1));
     setLines(Grid1, height, width);
     setCoord(Grid1);
     setGrid(Grid1, Board1);
 
-    mvwprintw(stdscr, 1, max_width - (disFromCorners + width / 2), "%s", player2.c_str());
+    mvwprintw(stdscr, 1, max_width - disFromCorners - (width - player2.size())/2, "%s", player2.c_str());
     box(Grid2, 0, 0);
     wbkgd(Grid2, COLOR_PAIR(1));
     setLines(Grid2, height, width);
@@ -121,7 +128,7 @@ void VIEW::setGrid(WINDOW* Grid, const std::vector<std::vector<int>>& Board) {
             switch (Board[row][column]){
             case 0:
                 wattron(Grid, COLOR_PAIR(3));
-                charToPrint = 'X';
+                charToPrint = ' ';
                 break;
             case 1:
                 wattron(Grid, COLOR_PAIR(2));
@@ -129,13 +136,18 @@ void VIEW::setGrid(WINDOW* Grid, const std::vector<std::vector<int>>& Board) {
                 break;
             case 2:
                 wattron(Grid, COLOR_PAIR(5));
-                charToPrint = 'X';
+                charToPrint = ' ';
                 break;
             case 3:
                 wattron(Grid, COLOR_PAIR(4));
-                charToPrint = 'X';
+                charToPrint = ' ';
+                break;
+            case 4:
+                wattron(Grid, COLOR_PAIR(2));
+                charToPrint = '-';
                 break;
             }
+
             mvwprintw(Grid, row * 2 + 3, column * 4 + 5, "%c", charToPrint);
             wattroff(Grid, A_ATTRIBUTES);
             wrefresh(Grid);
@@ -153,18 +165,21 @@ void VIEW::coverGrid(WINDOW* Grid, const std::vector<std::vector<int>>& Board) {
             switch (Board[row][column]) {
             case 0:
                 wattron(Grid, COLOR_PAIR(3));
+                charToPrint = ' ';
                 break;
             case 1:
                 wattron(Grid, COLOR_PAIR(3));
+                charToPrint = ' ';
                 break;
             case 2:
                 wattron(Grid, COLOR_PAIR(5));
+                charToPrint = 'X';
                 break;
             case 3:
                 wattron(Grid, COLOR_PAIR(4));
+                charToPrint = '+';
                 break;
             }
-            charToPrint = 'X';
             mvwprintw(Grid, row * 2 + 3, column * 4 + 5, "%c", charToPrint);
             wattroff(Grid, A_ATTRIBUTES);
             wrefresh(Grid);
@@ -182,29 +197,31 @@ void VIEW::printMatrix(const std::vector<std::vector<int>>& matrix) {
     std::cout << "\n\n";
 }
 
-void VIEW::getShipDirections(std::vector<std::vector<int>>& shipData, int index) {
+void VIEW::getShipDirections(int& validX, int& validY, int& validDir, int size) {
     //std::srand(static_cast<unsigned int>(std::time(nullptr)));
 
     box(Control, 0, 0);
-    mvwprintw(Control, 2, 2, "Size : %d ", shipData[0][index]);
+    mvwprintw(Control, 2, 2, "Size : %d ", size);
     mvwprintw(Control, 4, 2, "Enter x y : ");
     mvwprintw(Control, 8, 2, "Enter direction(h or v) : ");
 
     wmove(Control, 6, 2);
-    mvwscanw(Control, 6, 2, "%d %d", &shipData[2][index], &shipData[3][index]);
+    mvwscanw(Control, 6, 2, "%d %d", &validX, &validY);
 
     wmove(Control, 10, 2);
     char dir;
     mvwscanw(Control, 10, 2, "%c", &dir);
     switch (tolower(dir)) {
     case 'h':
-        shipData[1][index] = 0;
+        validDir = 0;
         break;
     case 'v':
-        shipData[1][index] = 1;
+        validDir = 1;
         break;
+    default:
+        validDir = 2;
     }
-
+  
     werase(Control);
 }
 
@@ -237,10 +254,17 @@ std::string VIEW::getPlayerName(int playerNum) {
 }
 
 void VIEW::getShootCoord(int& shootX, int& shootY) {
-    //std::cout << "enter shoot x y: ";
-    // std::cin >> shootX >> shootY;
-	shootY = std::rand() % 10;
-	shootX = std::rand() % 10;
+    box(Control, 0, 0);
+    werase(Control);
+    mvwprintw(Control, 4, 2, "Enter shoot x y : ");
+    
+    wmove(Control, 6, 2);
+    mvwscanw(Control, 6, 2, "%d %d", &shootX, &shootY);
+
+    char ch;
+    while ((ch = getch()) == 'q') endwin();
+	//shootY = std::rand() % 10;
+	//shootX = std::rand() % 10;
 }
 
 VIEW::~VIEW() {

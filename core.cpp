@@ -37,38 +37,57 @@ void CORE::printMatrix(const std::vector<std::vector<int>>& matrix) {
     std::cout << "\n\n";
 }
 
-void CORE::shipDirections() {
-    /*for (int i = 0; i < shipData[0].size(); ++i) {
-        //std::cout << "ship data " << shipData[0].size() << std::endl;
-        view.getShipDirections(shipData);
-        setShips(shipData, Board1);
-        //std::cout << "checking\n";
-    }*/
-    //for (double i = 0; i <= 1e+8; ++i);
-    //view.getShipDirections(shipData);
-    //setShips(shipData, Board2);
-}
-
 void CORE::setShips(std::vector<std::vector<int>>& Board, int boardNumber) {
+    int validX, validY, validDir;
     for (int index = 0; index < shipData[directionRow].size(); ++index) {
-        view.getShipDirections(shipData, index);
-        int x = shipData[xRow][index] - 1;
-        int y = shipData[yRow][index] - 1;
-        //std::cout << "checking for Board2\n";
-        switch (shipData[directionRow][index]) {
-            case 0: // horizontal case              
-                for (int size = 0; size < shipData[sizeRow][index]; ++size) {
-                    Board[x][y + size] = 1;
-                    //std::cout << "Board2 x y size : " << x << " " << y << " " << shipData[sizeRow][index] << std::endl;
-                }
-                break;
-            case 1: // vertical case
-                for (int size = 0; size < shipData[sizeRow][index]; ++size) {
-                    Board[x + size][y] = 1;
-                    //std::cout << "checking for Board 2 in switch case 0\n";
-                }
-                break;
+        int size = shipData[sizeRow][index];
+        view.print(view.getPlayerName(boardNumber));
+        view.getShipDirections(validX, validY, validDir, shipData[sizeRow][index]);
+
+        bool checkValues_ = checkValues(validDir, validX, validY);
+        bool checkInBoard_ = checkInBoard(validDir, validX, validY, size);
+        bool checkOtherShips_ = checkOtherShips(Board, validX, validY, size, validDir);
+        while (!checkValues_ || !checkInBoard_ || !checkOtherShips_) {
+            if (!checkValues_) {
+                view.print("Enter valid values!");
+            }
+            else if (!checkInBoard_) {
+                view.print("The ship can't fit!");
+            } 
+            else if (!checkOtherShips_) {
+                view.print("Overlapping with a ship!");
+            }
+        
+
+            view.getShipDirections(validX, validY, validDir, shipData[sizeRow][index]);
+            checkValues_ = checkValues(validDir, validX, validY);
+            checkInBoard_ = checkInBoard(validDir, validX, validY, shipData[sizeRow][index]);
+            checkOtherShips_ = checkOtherShips(Board, validX, validY, size, validDir);
         }
+
+        shipData[xRow][index] = validX - 1;
+        shipData[yRow][index] = validY - 1;
+        shipData[directionRow][index] = validDir;
+
+
+        int x = shipData[xRow][index];
+        int y = shipData[yRow][index];
+        int dir = shipData[directionRow][index];        
+
+        switch (dir) {
+        case 0: // horizontal case  
+            for (int s = 0; s < size; ++s) {
+                Board[x][y + s] = 1;
+            }
+            break;
+        case 1: // vertical case
+            for (int s = 0; s < size; ++s) {
+                Board[x + s][y] = 1;
+                                
+            }
+            break;
+        }
+        setBoundaries(Board, x, y, size, dir);
         switch (boardNumber) {
         case 1:
             view.setGrid(view.getGrid(boardNumber), Board);
@@ -77,7 +96,7 @@ void CORE::setShips(std::vector<std::vector<int>>& Board, int boardNumber) {
             view.setGrid(view.getGrid(boardNumber), Board);
             break;
         }
-        
+
     }
 }
 
@@ -85,12 +104,19 @@ void CORE::shootingShips() {
     int shootX, shootY;
     std::vector<std::vector<int>> shootingBoard;
     bool continue_ = 1;
-    bool player = 0; // 0 - player1, 1 - player2
+    bool player = 0; // 0 - player1, 1 - player2   
+    bool checkShootCoord_;
     while (continue_) {
         while (player == 0 && continue_ != 0) { // 0 - player1
             view.print(view.getPlayerName(1));
             view.getShootCoord(shootX, shootY);
-            shoot(Board2, shootX, shootY, player);
+            checkShootCoord = checkShootCoord(shootX, shootY)
+            while (!checkShootCoord_) {
+                view.print("Enter valid coords!");
+                view.getShootCoord(shootX, shootY);
+                checkShootCoord(shootX, shootY)
+            }
+            shoot(Board2, shootX - 1, shootY - 1, player);
             view.coverGrid(view.getGrid(2), Board2);
             isFinished(continue_, Board2);
         }
@@ -98,8 +124,9 @@ void CORE::shootingShips() {
         while (player == 1 && continue_ != 0) { // 1 - player2
             view.print(view.getPlayerName(2));
             view.getShootCoord(shootX, shootY);
-            shoot(Board1, shootX, shootY, player);
-            view.coverGrid(view.getGrid(2), Board2);
+
+            shoot(Board1, shootX - 1, shootY - 1, player);
+            view.coverGrid(view.getGrid(1), Board1);
             isFinished(continue_, Board1);
         }
     }
@@ -119,7 +146,6 @@ void CORE::shoot(std::vector<std::vector<int>>& Board, const int& shootX, const 
     
     player = !player;
 }
-
 
 void CORE::winner(const bool& player) {
     switch (player) {
@@ -151,12 +177,11 @@ void CORE::game() {
     view.drawBoard(Board1, Board2);
     view.drawControlBoard();
 
-    view.print(view.getPlayerName(1));
+    
     setShips(Board1, 1);
-    view.print(view.getPlayerName(2));
-    setShips(Board2, 2);
-
     view.coverGrid(view.getGrid(1), Board1);
+
+    setShips(Board2, 2);
     view.coverGrid(view.getGrid(2), Board2);
 
     shootingShips();
@@ -166,49 +191,101 @@ void CORE::menu() {
     view.menu();
 }
 
+bool CORE::checkValues(int dir, int x, int y) {
+    bool check = true;
+    if (dir == 2) {
+        check = false;
+    }
 
-bool CORE::check(std::vector<std::vector<int>>& Board, const int& shootX, const int& shootY) {
-    bool checkX = 0, checkY = 0;
-    std::cout << "checking check before check\n";
-    if (Board[shootX][shootY] == 0) {
-        std::cout << "check 1\n";
-        if (Board[shootX + 1][shootY] == 0 || Board[shootX + 1][shootY] == 2) {
-            checkX = 1;
+    if (x <= 0 || x > SIZE) {
+       check = false;
+    } 
+    if (y <= 0 || y > SIZE) {
+       check = false;
+    }
+    std::cout << "check = " << check;
+    return check;
+}
+
+
+
+bool CORE::checkInBoard(int dir, int x, int y, int size) {
+    bool check = true;
+    switch (dir) {
+    case 0: // horizontal
+        if (x + size - 1 > SIZE) {
+            check = false;
         }
-    }
-    else if (Board[shootX][shootY] == SIZE - 1) {
-        std::cout << "check 2\n";
-        if (Board[shootX - 1][shootY] == 0 || Board[shootX - 1][shootY] == 2) {
-            checkX = 1;
+        break;
+    case 1: // vertical
+        if (y + size - 1 > SIZE) {
+            check = false;
         }
+        break;
+    default: 
+        check = false;
+        break;
     }
-    else if ((Board[shootX + 1][shootY] == 0 || Board[shootX + 1][shootY] == 2) &&
-        (Board[shootX - 1][shootY] == 0 || Board[shootX - 1][shootY] == 2)) {
-        std::cout << "check 3\n";
-        checkX = 1;
+    return check;
+}
+
+void CORE::setBoundaries(std::vector<std::vector<int>>& Board, int x, int y, int size, int dir) {
+    int startX = (x > 0) ? x - 1 : x;
+    int startY = (y > 0) ? y - 1 : y;
+    int endX = x, endY = y;
+
+    switch (dir) {
+    case 0: // horizontal
+        endX = (x + 1 < SIZE) ? x + 1 : x;
+        endY = (y + size < SIZE) ? y + size : y;
+        break;
+    case 1: // vertical
+        endX = (x + size < SIZE) ? x + size : x;
+        endY = (y + 1 < SIZE) ? y + 1 : y;
+        break;
     }
-    if (Board[shootX][shootY] == 0) {
-        if (Board[shootX][shootY + 1] == 0 || Board[shootX][shootY + 1] == 2) {
-            std::cout << "check 4\n";
-            checkY = 1;
+
+    for (int i = startX; i <= endX; ++i) {
+        for (int j = startY; j <= endY; ++j) {
+            if (Board[i][j] != 1) {
+                Board[i][j] = 4;
+            }
         }
-    }
-    else if (Board[shootX][shootY] == SIZE - 1) {
-        if (Board[shootX][shootY - 1] == 0 || Board[shootX][shootY - 1] == 2) {
-            std::cout << "check 5\n";
-            checkY = 1;
-        }
-    }
-    else if ((Board[shootX][shootY + 1] == 0 || Board[shootX][shootY + 1] == 2) &&
-        (Board[shootX][shootY - 1] == 0 || Board[shootX][shootY - 1] == 2)) {
-        std::cout << "check 6\n";
-        checkY = 1;
-    }
-    if (checkX == 1 && checkY == 1) {
-        return true;
-    }
-    else {
-        return false;
     }
 }
 
+bool CORE::checkOtherShips(std::vector<std::vector<int>>& Board, int x, int y, int size, int dir) {
+    int startX = (x > 0) ? x - 1 : x;
+    int startY = (y > 0) ? y - 1 : y;
+    int endX = x, endY = y;
+
+    switch (dir) {
+    case 0: // horizontal
+        endX = (x + 1 < SIZE) ? x + 1 : x;
+        endY = (y + size < SIZE) ? y + size - 1 : y;
+        break;
+    case 1: // vertical
+        endX = (x + size < SIZE) ? x + size - 1 : x;
+        endY = (y + 1 < SIZE) ? y + 1 : y;
+        break;
+    }
+
+    for (int i = startX; i < endX; ++i) {
+        for (int j = startY; j < endY; ++j) {
+            if (Board[i][j] == 1 || Board[i][j] == 4) {
+                return false; 
+            }
+        }
+    }
+    return true;
+}
+
+bool CORE::checkShootCoord(int shootX, int shootY) {
+    if (shootX <= 0 || shootX > SIZE) {
+        return false;
+    }
+    if (shootY <= 0 || shootY > SIZE) {
+        return false;
+    }
+    return true;
+}

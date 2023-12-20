@@ -10,15 +10,20 @@ public:
     CORE(); 
     void initValues();
     void printMatrix(const std::vector<std::vector<int>>& matrix);
-    void shipDirections(); 
+
     void setShips(std::vector<std::vector<int>>& Board, int boardNumber);
     void shootingShips();
     void shoot(std::vector<std::vector<int>>& Board, const int& shootX, const int& shootY, bool& player);
-    bool check(std::vector<std::vector<int>>& Board, const int& shootX, const int& shootY);
+    //bool check(std::vector<std::vector<int>>& Board, const int& shootX, const int& shootY);
     void isFinished(bool& continue_, std::vector<std::vector<int>>& Board);
     void menu();
     void game();
     void winner(const bool& player);
+    bool checkValues(int dir, int x, int y);
+    bool checkInBoard(int dir, int x, int y, int size);
+    bool checkOtherShips(std::vector<std::vector<int>>& Board, int x, int y, int size, int dir);
+    void setBoundaries(std::vector<std::vector<int>>& Board, int x, int y, int size, int dir);
+    bool checkShootCoord(int x, int y);
     
 private:
     std::vector<std::vector<int>> shipData;// = { 4, 3, 3, 2, 2, 2, 1, 1, 1, 1 }; // setting ship size
