@@ -1,23 +1,38 @@
 #include <iostream>
-#include <cstdlib>
-#include <ctime>
-#include <vector>
+#include <ncurses.h> //gui
+
+#include <cstdlib> //random values
+
+#include <vector> // manipulating vectors
+#include <string> // and strings
+
+#include <ctime> // time
+#include <thread>
+#include <chrono>
+
 #include "view.h"
-#include <ncurses.h>
+
 
 VIEW::VIEW() {
+    //creating main window
     initscr();
     cbreak();
     refresh();
     getmaxyx(stdscr, max_height, max_width);
-    //max_width
-    
+        
+    //creating Grids and Control Window
     Grid1 = newwin(height, width, 4, disFromCorners);
     Grid2 = newwin(height, width, 4, max_width - disFromCorners - width);
     Control = newwin(controlHeight, controlWidth, 8, (max_width - controlWidth)/2);
     start_color(); 
     init_pair(1, COLOR_BLACK, COLOR_WHITE);
+    
+ }
+
+void VIEW::pause() {
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 }
+
 
 void VIEW::print(std::string text) {
     int printHeight = 3, printWidth = 30;
@@ -36,25 +51,56 @@ void VIEW::print(std::string text) {
     wrefresh(printWindow);
 }
 
-void VIEW::menu() {
+int VIEW::mainMenu() {
     werase(stdscr);
-    // screen size x = 40, y = 150 
+    int select;
+    char buffer[0];
+    int menuHeight = 12, menuWidth = 46;
+    WINDOW* menu = newwin(menuHeight, menuWidth, (max_height - menuHeight) / 2, (max_width - menuWidth) / 2);
+    box(menu, 0, 0);
+    wbkgd(menu, COLOR_PAIR(1));
+
+    mvwprintw(menu, 2, (menuWidth - 15) / 2, "SEA BATTLE MENU");
+    mvwprintw(menu, 4, 2, "1.Start for two players");
+    mvwprintw(menu, 6, 2, "2.Start for one player");
+    mvwprintw(menu, 8, 2, "3.Quit");
+    mvwprintw(menu, 10, 2, "Enter an option");
+
+    wmove(menu, 10, 20);
+    wgetstr(menu, buffer);
+    select = std::stoi(buffer);
+    wrefresh(menu);
+    getch();
+    clear();
+
+    return select;
+}
+void VIEW::menuPlayers(int select) {
+    werase(stdscr);
+    
     char buffer[50];
     int menuHeight = 12, menuWidth = 46;
+
     WINDOW* menu = newwin(menuHeight, menuWidth, (max_height - menuHeight) / 2, (max_width - menuWidth) / 2);
     box(menu, 0, 0);    
     wbkgd(menu, COLOR_PAIR(1));
-    mvwprintw(menu, 2, (menuWidth - 15) / 2, "SEA BATTLE MENU");
+
+    if (select == 1) mvwprintw(menu, 2, (menuWidth - 20) / 2, "Game for two players");
+    else mvwprintw(menu, 2, (menuWidth - 20) / 2, "Game for one player");
     mvwprintw(menu, 4, 2, "Enter a name for player 1 ");
-    mvwprintw(menu, 6, 2, "Enter a name for player 2 ");
+
+    if (select == 1) mvwprintw(menu, 6, 2, "Enter a name for player 2 ");
 
     wmove(menu, 4, 28);
     wgetstr(menu, buffer);
     player1 = buffer;
-    wmove(menu, 6, 28);
-    wgetstr(menu, buffer);
-    player2 = buffer;
-    //curs_set(0);
+    if (select == 1) {
+        wmove(menu, 6, 28);
+        wgetstr(menu, buffer);
+        player2 = buffer;
+    }
+    else player2 = "computer";
+    
     mvwprintw(menu, 8, 2, "Press any key to start...");
     wrefresh(menu);
     getch();
@@ -62,6 +108,7 @@ void VIEW::menu() {
 
     getch();
  }
+
 
 void VIEW::drawBoard(const std::vector<std::vector<int>>& Board1, const std::vector<std::vector<int>>& Board2) {
     
@@ -90,8 +137,6 @@ void VIEW::drawBoard(const std::vector<std::vector<int>>& Board1, const std::vec
 }
 
 void VIEW::drawControlBoard() {
-    //int height = 23, width = 44;
-    //int disFromCorners = 6;
     box(Control, 0, 0);
     wbkgd(Control, COLOR_PAIR(1));
     wrefresh(Control); 
@@ -103,7 +148,7 @@ void VIEW::setCoord(WINDOW* Grid) {
     wattron(Grid, COLOR_PAIR(2));
     for (int coord = 0; coord < SIZE; ++coord) {        
         mvwprintw(Grid, coord * 2 + 3, 1, "%d", coord + 1); // horizontal
-        mvwprintw(Grid, 1, coord * 4 + 5, "%d", coord + 1); // changed
+        mvwprintw(Grid, 1, coord * 4 + 5, "%d", coord + 1); // vertical
     }
     wattroff(Grid, COLOR_PAIR(2));
 }
@@ -160,15 +205,18 @@ void VIEW::coverGrid(WINDOW* Grid, const std::vector<std::vector<int>>& Board) {
     init_pair(3, COLOR_BLACK, COLOR_WHITE);
     init_pair(4, COLOR_BLUE, COLOR_WHITE);
     init_pair(5, COLOR_RED, COLOR_WHITE);
+    werase(Grid);
+    setCoord(Grid);
+    setLines(Grid, height, width);
     for (int row = 0; row < SIZE; ++row) {
         for (int column = 0; column < SIZE; ++column) {
             switch (Board[row][column]) {
             case 0:
-                wattron(Grid, COLOR_PAIR(3));
+                //wattron(Grid, COLOR_PAIR(3));
                 charToPrint = ' ';
-                break;
+                break; 
             case 1:
-                wattron(Grid, COLOR_PAIR(3));
+                //wattron(Grid, COLOR_PAIR(3));
                 charToPrint = ' ';
                 break;
             case 2:
@@ -179,10 +227,16 @@ void VIEW::coverGrid(WINDOW* Grid, const std::vector<std::vector<int>>& Board) {
                 wattron(Grid, COLOR_PAIR(4));
                 charToPrint = '+';
                 break;
+            case 4:
+                //wattron(Grid, COLOR_PAIR(3));
+                charToPrint = ' ';
+                break;
             }
+            
             mvwprintw(Grid, row * 2 + 3, column * 4 + 5, "%c", charToPrint);
             wattroff(Grid, A_ATTRIBUTES);
             wrefresh(Grid);
+            
         }
     }
 }
@@ -197,31 +251,38 @@ void VIEW::printMatrix(const std::vector<std::vector<int>>& matrix) {
     std::cout << "\n\n";
 }
 
-void VIEW::getShipDirections(int& validX, int& validY, int& validDir, int size) {
-    //std::srand(static_cast<unsigned int>(std::time(nullptr)));
-
+void VIEW::getShipDirections(int& validX, int& validY, int& validDir, int size, bool option) {
+  
     box(Control, 0, 0);
     mvwprintw(Control, 2, 2, "Size : %d ", size);
     mvwprintw(Control, 4, 2, "Enter x y : ");
     mvwprintw(Control, 8, 2, "Enter direction(h or v) : ");
 
     wmove(Control, 6, 2);
-    mvwscanw(Control, 6, 2, "%d %d", &validX, &validY);
+    if (option) {
+        mvwscanw(Control, 6, 2, "%d %d", &validX, &validY);
+        wmove(Control, 10, 2);
+        char dir;
+        mvwscanw(Control, 10, 2, "%c", &dir);
 
-    wmove(Control, 10, 2);
-    char dir;
-    mvwscanw(Control, 10, 2, "%c", &dir);
-    switch (tolower(dir)) {
-    case 'h':
-        validDir = 0;
-        break;
-    case 'v':
-        validDir = 1;
-        break;
-    default:
-        validDir = 2;
+        switch (tolower(dir)) {
+        case 'h':
+            validDir = 0;
+            break;
+        case 'v':
+            validDir = 1;
+            break;
+        default:
+            validDir = 2;
+        }
     }
-  
+    else {
+        pause();
+        validX = rand() % 10 + 1;
+        validY = rand() % 10 + 1;
+        validDir = rand() % 2;
+    }
+ 
     werase(Control);
 }
 
@@ -253,18 +314,33 @@ std::string VIEW::getPlayerName(int playerNum) {
     }
 }
 
-void VIEW::getShootCoord(int& shootX, int& shootY) {
-    box(Control, 0, 0);
+void VIEW::getShootCoord(int& shootX, int& shootY, bool option) {
     werase(Control);
+    box(Control, 0, 0);
     mvwprintw(Control, 4, 2, "Enter shoot x y : ");
-    
-    wmove(Control, 6, 2);
-    mvwscanw(Control, 6, 2, "%d %d", &shootX, &shootY);
 
-    char ch;
-    while ((ch = getch()) == 'q') endwin();
-	//shootY = std::rand() % 10;
-	//shootX = std::rand() % 10;
+    if (option) {
+        wmove(Control, 6, 2);
+        mvwscanw(Control, 6, 2, "%d %d", &shootX, &shootY);
+
+        std::cout << "x y : " << shootX << " " << shootY << std::endl;
+
+        char ch;
+        if ((ch = getch()) == 'q') endwin();
+    }
+    else {
+        pause();
+        shootY = std::rand() % 10 + 1;
+        pause();
+        shootX = std::rand() % 10 + 1;
+    }
+
+}
+
+
+void VIEW::quitGame() {
+    endwin();
+    exit(0);
 }
 
 VIEW::~VIEW() {

@@ -10,9 +10,10 @@ public:
     VIEW();
     void printMatrix(const std::vector<std::vector<int>>& matrix);
     void print(std::string text);
-    void getShootCoord(int& shootX, int& shootY);
-    void getShipDirections(int &validX, int &validY, int &validDir, int size);
-    void menu();
+    void getShootCoord(int& shootX, int& shootY, bool option);
+    void getShipDirections(int &validX, int &validY, int &validDir, int size, bool option);
+    int mainMenu();
+    void menuPlayers(int select);
     void drawBoard(const std::vector<std::vector<int>>& Board1, const std::vector<std::vector<int>>& Board2);
     std::string getPlayerName(int playerNum);
     void setGrid(WINDOW* Grid, const std::vector<std::vector<int>>& Board);
@@ -20,7 +21,10 @@ public:
     void setCoord(WINDOW* Grid);
     void drawControlBoard();
     void coverGrid(WINDOW* Grid, const std::vector<std::vector<int>>& Board);
+    void pause();
+    //void quitButton();
     WINDOW* getGrid(int gridNumber);
+    void quitGame();
 
     ~VIEW();
 private:
@@ -33,6 +37,7 @@ private:
     WINDOW* Grid1;
     WINDOW* Grid2;
     WINDOW* Control;
+    WINDOW* quitWin;
 
 };
 
